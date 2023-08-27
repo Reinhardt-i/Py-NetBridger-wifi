@@ -1,27 +1,32 @@
 import socket
 import threading
 
-clients = []
+
+clients = {}
 
 
 def handle_client(client_socket, client_address):
+    username = client_socket.recv(1024).decode('utf-8')
+    clients[client_socket] = username
+    print(f"{username} connected from {client_address}")
+
     while True:
         message = client_socket.recv(1024).decode('utf-8')
         if not message:
             break
-        print(f"Received from {client_address}: {message}")
+        print(f"Received from {username}: {message}")
 
-        for client in clients:
+        for client, user in clients.items():
             if client != client_socket:
                 try:
-                    client.send(message.encode('utf-8'))
+                    client.send(f"{username}: {message}".encode('utf-8'))
                 except:
-                    clients.remove(client)
-                    print(f"Client {client.getpeername()} disconnected.")
+                    clients.pop(client)
+                    print(f"Client {user} disconnected.")
                     client.close()
                     raise
 
-    clients.remove(client_socket)
+    clients.pop(client_socket)
     client_socket.close()
 
 
@@ -34,7 +39,6 @@ def start_server():
 
     while True:
         client_socket, client_address = server.accept()
-        clients.append(client_socket)
         client_handler = threading.Thread(target=handle_client, args=(client_socket, client_address))
         client_handler.start()
 
