@@ -1,14 +1,27 @@
 import socket
 import threading
 
+clients = []
 
-def handle_client(client_socket):
+
+def handle_client(client_socket, client_address):
     while True:
         message = client_socket.recv(1024).decode('utf-8')
         if not message:
             break
-        print("Received:", message)
+        print(f"Received from {client_address}: {message}")
 
+        for client in clients:
+            if client != client_socket:
+                try:
+                    client.send(message.encode('utf-8'))
+                except:
+                    clients.remove(client)
+                    print(f"Client {client.getpeername()} disconnected.")
+                    client.close()
+                    raise
+
+    clients.remove(client_socket)
     client_socket.close()
 
 
@@ -20,8 +33,9 @@ def start_server():
     print("Server listening on port 12345")
 
     while True:
-        client_socket, _ = server.accept()
-        client_handler = threading.Thread(target=handle_client, args=(client_socket, ))
+        client_socket, client_address = server.accept()
+        clients.append(client_socket)
+        client_handler = threading.Thread(target=handle_client, args=(client_socket, client_address))
         client_handler.start()
 
 
