@@ -29,7 +29,7 @@ def send_messages(client_socket, username):
 if __name__ == '__main__':
     
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = ('server_ip_address', 12345)  # Replace with the server's IP address
+    server_address = ('192.168.0.103', 12345)  # Replace with the server's IP address
     client.connect(server_address)
 
     username = input("Enter your username: ")
