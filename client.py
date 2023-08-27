@@ -3,28 +3,34 @@ import threading
 
 
 def receive_messages(client_socket):
-    while True:
-        try:
+    try:
+        while True:
             message = client_socket.recv(1024).decode('utf-8')
             if message:
                 print(message)
-        except:
-            print("Connection lost.")
-            break
-            raise  # lol
+    except:
+        print("Connection lost.")
+        raise
 
 
 def send_messages(client_socket, username):
-    while True:
-        message = input()
-        full_message = f"{username}: {message}"
-        client_socket.send(full_message.encode('utf-8'))
+    try:
+        while True:
+            message = input()
+            if message.lower() == "exit":
+                break
+            full_message = f"{username}: {message}"
+            client_socket.send(full_message.encode('utf-8'))
+    except:
+        print("An error occurred while sending messages.")
+        raise
 
 
 if __name__ == '__main__':
     
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(('server_ip_address', 12345))  # Replace with the server's IP address
+    server_address = ('server_ip_address', 12345)  # Replace with the server's IP address
+    client.connect(server_address)
 
     username = input("Enter your username: ")
     client.send(username.encode('utf-8'))
@@ -34,3 +40,8 @@ if __name__ == '__main__':
 
     receive_thread.start()
     send_thread.start()
+
+    receive_thread.join()
+    send_thread.join()
+
+    client.close()
