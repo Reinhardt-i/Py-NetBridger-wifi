@@ -1,6 +1,8 @@
+---
+
 # Py-NetBridger-wifi 🌐💬
 
-Py-NetBridger-wifi is a lightweight multi-client chat app written in Python, using the client-server model. Engage in real-time conversations over the local WiFi network, with user-friendly CLI interaction.
+Py-NetBridger-wifi is a lightweight multi-client chat app written in Python, using the client-server model. Use user-friendly CLI interaction to engage in real-time conversations over the local WiFi network.
 
 ---
 
@@ -29,6 +31,8 @@ Py-NetBridger-wifi is a lightweight multi-client chat app written in Python, usi
 
 ### Contributions 🤝
 
-Contributions are always welcomed! Fork, enhance, and pull request.
+Contributions are always welcomed! Fork, enhance, and pull requests.
+
+---
 
 
