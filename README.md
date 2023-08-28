@@ -19,8 +19,10 @@ Py-NetBridger-wifi is a lightweight multi-client chat app written in Python, usi
    ```sh
         git clone https://github.com/Reinhardt-i/Py-NetBridger-wifi.git
         cd Py-NetBridger-wifi
+
+        # Open separate terminal windows for each script (server, clients, and simulation).
         python chat_server.py
-        python chat_client.py
+        python chat_client.py  # in separe terminals.
     ```
 
 2. Chat away!
