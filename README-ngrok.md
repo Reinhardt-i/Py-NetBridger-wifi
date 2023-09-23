@@ -1,6 +1,6 @@
 # Exposing Your Chat App with ngrok
 
-You can use ngrok to expose your chat application to the internet, allowing others to connect to it even if they are not on the same local network as your server. Follow these steps to use ngrok with your chat app:
+You can use ngrok to expose this chat application to the internet, allowing others to connect to it even if they are not on the same local network as your server. Follow these steps to use ngrok with your chat app:
 
 1. **Install ngrok:**
    - Download and install ngrok from the [official website](https://ngrok.com/download).
@@ -35,6 +35,6 @@ You can use ngrok to expose your chat application to the internet, allowing othe
 6. **Chat Over the Internet:**
    - With your server exposed via ngrok, clients from anywhere in the world can connect to your chat application using the ngrok URL and chat with you over the internet.
 
-Keep in mind that ngrok generates a dynamic subdomain for your tunnel, so the URL may change each time you restart ngrok. If you want a more stable URL, you can consider upgrading to a paid ngrok plan that offers custom domains.
+Keep in mind that ngrok generates a dynamic subdomain for your tunnel, so the URL may change each time you restart ngrok. 
 
 Remember to keep your server and ngrok running as long as you want others to have access to your chat application. When you're done, you can stop ngrok to close the tunnel.
