@@ -1,13 +1,19 @@
-
 import socket
 import threading
+from typing import Dict
 
-
-clients = {}
+clients: Dict[socket.socket, str] = {}
 clients_lock = threading.Lock()
 
 
-def handle_client(client_socket, client_address):
+def handle_client(client_socket: socket.socket, client_address: tuple):
+    """
+        Handle incoming messages from a client.
+
+    Args:
+        client_socket (socket.socket): The client's socket.
+        client_address (tuple): The client's address (host, port).
+    """
     try:
         username = client_socket.recv(1024).decode('utf-8')
         with clients_lock:
@@ -45,8 +51,11 @@ def handle_client(client_socket, client_address):
 
 
 def start_server():
+    """
+        Starts the server and listen for incoming client connections.
+    """
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = ('192.168.0.103', 12345)
+    server_address = ('0.0.0.0', 12345)
     server.bind(server_address)
     server.listen(5)
 
