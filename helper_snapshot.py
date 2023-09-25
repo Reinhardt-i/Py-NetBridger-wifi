@@ -1,8 +1,12 @@
 import os
 
-source_directory = os.getcwd()
+"""
+        Code to save 'snapshot' of the project to a file. 
+        If I do this even after git, I'm I really utilizing git properly?? 
+"""
 
-output_file = "z.txt"
+source_directory = os.getcwd()
+output_file = "helper_snapshot_output.txt"
 
 with open(output_file, "w") as output:
     for filename in os.listdir(source_directory):
@@ -10,7 +14,6 @@ with open(output_file, "w") as output:
 
             output.write(f"File - {filename}\n")
             output.write(f"Path - {os.path.join(source_directory, filename)}\n")
-            output.write("\"\" THE WHOLE PY FILE - \"\"\n")
             
             with open(os.path.join(source_directory, filename), "r") as python_file:
                 content = python_file.read()
@@ -19,3 +22,4 @@ with open(output_file, "w") as output:
             output.write("\nEnd of File.\n\n")
 
 print(f"All Python files in {source_directory} copied to {output_file}.")
+

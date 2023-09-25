@@ -1,12 +1,11 @@
 File - simulation.py
 Path - /Users/abraar_rar/Documents/5. Projects/Py-NetBridger-wifi/simulation.py
-"" THE WHOLE PY FILE - ""
 import subprocess
 import time
 
 
 def run_simulation():
-    # Run the server.py script in a separate process
+
     server_process = subprocess.Popen(["python", "server.py"])
     time.sleep(1)
 
@@ -14,13 +13,19 @@ def run_simulation():
     client1_process = subprocess.Popen(["python", "client.py"])
     client2_process = subprocess.Popen(["python", "client.py"])
 
-    # Let the simulation run for a while
-    time.sleep(10)
+    time.sleep(3)
+
+
+    # TODO :
+    #       input random usernames (preferably from a list of (2/3step)usernames)
+    #       into client.py, then send soome random texts, check log file to see 
+    #       if length has changed since the beggining of the program.
 
     server_process.terminate()
     client1_process.terminate()
     client2_process.terminate()
 
+    time.sleep(10)
 
 if __name__ == "__main__":
     run_simulation()
@@ -29,13 +34,17 @@ End of File.
 
 File - server.py
 Path - /Users/abraar_rar/Documents/5. Projects/Py-NetBridger-wifi/server.py
-"" THE WHOLE PY FILE - ""
 import socket
 import threading
+import logging
 from typing import Dict
+
 
 clients: Dict[socket.socket, str] = {}
 clients_lock = threading.Lock()
+
+# Configuring logging
+logging.basicConfig(filename='server.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def handle_client(client_socket: socket.socket, client_address: tuple):
@@ -61,19 +70,24 @@ def handle_client(client_socket: socket.socket, client_address: tuple):
             message = client_socket.recv(1024).decode('utf-8')
             if not message:
                 break
-            print(f"Received from {username}: {message}")
+            logging.info(f"Received from - !{username} : {message}")
+
 
             with clients_lock:
                 for client, user in clients.items():
                     if client != client_socket:
                         try:
-                            client.send(f"{username}: {message}".encode('utf-8'))
+                            client.send(f" {message}".encode('utf-8'))
                         except:
                             print(f"Client {user} disconnected.")
                             client.close()
                             del clients[client]
                             break
                             raise
+                        
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+
     finally:
         with clients_lock:
             if client_socket in clients:
@@ -104,9 +118,38 @@ if __name__ == '__main__':
 
 End of File.
 
+File - helper_snapshot.py
+Path - /Users/abraar_rar/Documents/5. Projects/Py-NetBridger-wifi/helper_snapshot.py
+import os
+
+"""
+        Code to save 'snapshot' of the project to a file. 
+        If I do this even after git, I'm I really utilizing git properly?? 
+"""
+
+source_directory = os.getcwd()
+output_file = "helper_snapshot_output.txt"
+
+with open(output_file, "w") as output:
+    for filename in os.listdir(source_directory):
+        if filename.endswith(".py"):
+
+            output.write(f"File - {filename}\n")
+            output.write(f"Path - {os.path.join(source_directory, filename)}\n")
+            
+            with open(os.path.join(source_directory, filename), "r") as python_file:
+                content = python_file.read()
+                output.write(content)
+            
+            output.write("\nEnd of File.\n\n")
+
+print(f"All Python files in {source_directory} copied to {output_file}.")
+
+
+End of File.
+
 File - client.py
 Path - /Users/abraar_rar/Documents/5. Projects/Py-NetBridger-wifi/client.py
-"" THE WHOLE PY FILE - ""
 import socket
 import threading
 from typing import Tuple
@@ -170,36 +213,8 @@ if __name__ == '__main__':
 
 End of File.
 
-File - z.py
-Path - /Users/abraar_rar/Documents/5. Projects/Py-NetBridger-wifi/z.py
-"" THE WHOLE PY FILE - ""
-import os
-
-source_directory = os.getcwd()
-
-output_file = "z.txt"
-
-with open(output_file, "w") as output:
-    for filename in os.listdir(source_directory):
-        if filename.endswith(".py"):
-
-            output.write(f"File - {filename}\n")
-            output.write(f"Path - {os.path.join(source_directory, filename)}\n")
-            output.write("\"\" THE WHOLE PY FILE - \"\"\n")
-            
-            with open(os.path.join(source_directory, filename), "r") as python_file:
-                content = python_file.read()
-                output.write(content)
-            
-            output.write("\nEnd of File.\n\n")
-
-print(f"All Python files in {source_directory} copied to {output_file}.")
-
-End of File.
-
 File - gui.py
 Path - /Users/abraar_rar/Documents/5. Projects/Py-NetBridger-wifi/gui.py
-"" THE WHOLE PY FILE - ""
 import tkinter as tk
 import socket
 import threading
