@@ -30,17 +30,21 @@ class ClientGUI:
         self.username = None
 
     def connect_to_server(self):
-        if not self.client_socket:
-            self.username = self.username_entry.get()
-            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server_address = ('192.168.0.103', 12345)  # Replace with the server's IP address
-            self.client_socket.connect(server_address)
 
-            self.receive_thread = threading.Thread(target=self.receive_messages)
-            self.send_thread = threading.Thread(target=self.send_messages)
+        if self.client_socket:
+            return
+        
+        self.username = self.username_entry.get()
+        server_address = ('0.0.0.0', 12345)  # Replace with the server's IP address
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client_socket.connect(server_address)
 
-            self.receive_thread.start()
-            self.send_thread.start()
+        self.receive_thread = threading.Thread(target=self.receive_messages)
+        self.send_thread = threading.Thread(target=self.send_messages)
+
+        self.receive_thread.start()
+        self.send_thread.start()
+
 
     def receive_messages(self):
         while True:
@@ -50,9 +54,8 @@ class ClientGUI:
                     self.chat_text.config(state='normal')
                     self.chat_text.insert(tk.END, message + '\n')
                     self.chat_text.config(state='disabled')
-            except:
-                break
-                raise
+            except SystemExit:
+                raise SystemExit
 
     def send_message(self):
         message = self.message_entry.get()

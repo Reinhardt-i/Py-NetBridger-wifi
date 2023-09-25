@@ -1,0 +1,279 @@
+File - simulation.py
+Path - /Users/abraar_rar/Documents/5. Projects/Py-NetBridger-wifi/simulation.py
+"" THE WHOLE PY FILE - ""
+import subprocess
+import time
+
+
+def run_simulation():
+    # Run the server.py script in a separate process
+    server_process = subprocess.Popen(["python", "server.py"])
+    time.sleep(1)
+
+    # Run two client.py scripts in separate processes
+    client1_process = subprocess.Popen(["python", "client.py"])
+    client2_process = subprocess.Popen(["python", "client.py"])
+
+    # Let the simulation run for a while
+    time.sleep(10)
+
+    server_process.terminate()
+    client1_process.terminate()
+    client2_process.terminate()
+
+
+if __name__ == "__main__":
+    run_simulation()
+
+End of File.
+
+File - server.py
+Path - /Users/abraar_rar/Documents/5. Projects/Py-NetBridger-wifi/server.py
+"" THE WHOLE PY FILE - ""
+import socket
+import threading
+from typing import Dict
+
+clients: Dict[socket.socket, str] = {}
+clients_lock = threading.Lock()
+
+
+def handle_client(client_socket: socket.socket, client_address: tuple):
+    """
+        Handle incoming messages from a client.
+
+    Args:
+        client_socket (socket.socket): The client's socket.
+        client_address (tuple): The client's address (host, port).
+    """
+    try:
+        username = client_socket.recv(1024).decode('utf-8')
+        with clients_lock:
+            if username in clients.values():
+                client_socket.send("Username already in use. Please choose another.".encode('utf-8'))
+                client_socket.close()
+                return
+            clients[client_socket] = username
+
+        print(f"{username} connected from {client_address}")
+
+        while True:
+            message = client_socket.recv(1024).decode('utf-8')
+            if not message:
+                break
+            print(f"Received from {username}: {message}")
+
+            with clients_lock:
+                for client, user in clients.items():
+                    if client != client_socket:
+                        try:
+                            client.send(f"{username}: {message}".encode('utf-8'))
+                        except:
+                            print(f"Client {user} disconnected.")
+                            client.close()
+                            del clients[client]
+                            break
+                            raise
+    finally:
+        with clients_lock:
+            if client_socket in clients:
+                print(f"Client {clients[client_socket]} disconnected.")
+                del clients[client_socket]
+            client_socket.close()
+
+
+def start_server():
+    """
+        Starts the server and listen for incoming client connections.
+    """
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_address = ('0.0.0.0', 12345)
+    server.bind(server_address)
+    server.listen(5)
+
+    print("Server listening on port 12345")
+
+    while True:
+        client_socket, client_address = server.accept()
+        client_handler = threading.Thread(target=handle_client, args=(client_socket, client_address))
+        client_handler.start()
+
+
+if __name__ == '__main__':
+    start_server()
+
+End of File.
+
+File - client.py
+Path - /Users/abraar_rar/Documents/5. Projects/Py-NetBridger-wifi/client.py
+"" THE WHOLE PY FILE - ""
+import socket
+import threading
+from typing import Tuple
+
+def receive_messages(client_socket: socket.socket):
+    """
+        Receive and display messages from the server.
+
+    Args:
+        client_socket (socket.socket): The client's socket connected to the server.
+    """
+    try:
+        while True:
+            message = client_socket.recv(1024).decode('utf-8')
+            if message:
+                print(message)
+    except:
+        print("Connection lost.")
+        raise
+
+
+def send_messages(client_socket: socket.socket, username: str):
+    """
+        Send messages to the server.
+
+    Args:
+        client_socket (socket.socket): The client's socket connected to the server.
+        username (str): The username of the client.
+    """
+    try:
+        while True:
+            message = input()
+            if message.lower() == "exit":
+                break
+            full_message = f"{username}: {message}"
+            client_socket.send(full_message.encode('utf-8'))
+    except:
+        print("An error occurred while sending messages.")
+        raise
+
+
+if __name__ == '__main__':
+
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_address = ('0.0.0.0', 12345)
+    client.connect(server_address)
+
+    username = input("Enter your username : ")
+    client.send(username.encode('utf-8'))
+
+    receive_thread = threading.Thread(target=receive_messages, args=(client,))
+    send_thread = threading.Thread(target=send_messages, args=(client, username))
+
+    receive_thread.start()
+    send_thread.start()
+
+    receive_thread.join()
+    send_thread.join()
+
+    client.close()
+
+End of File.
+
+File - z.py
+Path - /Users/abraar_rar/Documents/5. Projects/Py-NetBridger-wifi/z.py
+"" THE WHOLE PY FILE - ""
+import os
+
+source_directory = os.getcwd()
+
+output_file = "z.txt"
+
+with open(output_file, "w") as output:
+    for filename in os.listdir(source_directory):
+        if filename.endswith(".py"):
+
+            output.write(f"File - {filename}\n")
+            output.write(f"Path - {os.path.join(source_directory, filename)}\n")
+            output.write("\"\" THE WHOLE PY FILE - \"\"\n")
+            
+            with open(os.path.join(source_directory, filename), "r") as python_file:
+                content = python_file.read()
+                output.write(content)
+            
+            output.write("\nEnd of File.\n\n")
+
+print(f"All Python files in {source_directory} copied to {output_file}.")
+
+End of File.
+
+File - gui.py
+Path - /Users/abraar_rar/Documents/5. Projects/Py-NetBridger-wifi/gui.py
+"" THE WHOLE PY FILE - ""
+import tkinter as tk
+import socket
+import threading
+
+
+class ClientGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Py-NetBridger.")
+
+        self.username_label = tk.Label(root, text="Username:")
+        self.username_label.pack()
+
+        self.username_entry = tk.Entry(root)
+        self.username_entry.pack()
+
+        self.connect_button = tk.Button(root, text="Connect", command=self.connect_to_server)
+        self.connect_button.pack()
+
+        self.chat_text = tk.Text(root, state='disabled')
+        self.chat_text.pack()
+
+        self.message_entry = tk.Entry(root)
+        self.message_entry.pack()
+
+        self.send_button = tk.Button(root, text="Send", command=self.send_message)
+        self.send_button.pack()
+
+        self.client_socket = None
+        self.username = None
+
+    def connect_to_server(self):
+
+        if self.client_socket:
+            return
+        
+        self.username = self.username_entry.get()
+        server_address = ('0.0.0.0', 12345)  # Replace with the server's IP address
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client_socket.connect(server_address)
+
+        self.receive_thread = threading.Thread(target=self.receive_messages)
+        self.send_thread = threading.Thread(target=self.send_messages)
+
+        self.receive_thread.start()
+        self.send_thread.start()
+
+
+    def receive_messages(self):
+        while True:
+            try:
+                message = self.client_socket.recv(1024).decode('utf-8')
+                if message:
+                    self.chat_text.config(state='normal')
+                    self.chat_text.insert(tk.END, message + '\n')
+                    self.chat_text.config(state='disabled')
+            except SystemExit:
+                raise SystemExit
+
+    def send_message(self):
+        message = self.message_entry.get()
+        if message.lower() == "exit":
+            self.client_socket.close()
+            self.root.destroy()
+        else:
+            full_message = f"{self.username}: {message}"
+            self.client_socket.send(full_message.encode('utf-8'))
+            self.message_entry.delete(0, tk.END)
+
+
+if __name__ == '__main__':
+    root = tk.Tk()
+    gui = ClientGUI(root)
+    root.mainloop()
+
+End of File.
+

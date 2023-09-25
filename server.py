@@ -1,9 +1,14 @@
 import socket
 import threading
+import logging
 from typing import Dict
+
 
 clients: Dict[socket.socket, str] = {}
 clients_lock = threading.Lock()
+
+# Configuring logging
+logging.basicConfig(filename='server.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def handle_client(client_socket: socket.socket, client_address: tuple):
@@ -29,19 +34,24 @@ def handle_client(client_socket: socket.socket, client_address: tuple):
             message = client_socket.recv(1024).decode('utf-8')
             if not message:
                 break
-            print(f"Received from {username}: {message}")
+            logging.info(f"Received from - !{username} : {message}")
+
 
             with clients_lock:
                 for client, user in clients.items():
                     if client != client_socket:
                         try:
-                            client.send(f"{username}: {message}".encode('utf-8'))
+                            client.send(f" {message}".encode('utf-8'))
                         except:
                             print(f"Client {user} disconnected.")
                             client.close()
                             del clients[client]
                             break
                             raise
+                        
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+
     finally:
         with clients_lock:
             if client_socket in clients:
