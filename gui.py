@@ -2,11 +2,10 @@ import tkinter as tk
 import socket
 import threading
 
-
 class ClientGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Py-NetBridger.")
+        self.root.title("Py-NetBridger")
 
         self.username_label = tk.Label(root, text="Username:")
         self.username_label.pack()
@@ -30,10 +29,9 @@ class ClientGUI:
         self.username = None
 
     def connect_to_server(self):
-
         if self.client_socket:
             return
-        
+
         self.username = self.username_entry.get()
         server_address = ('0.0.0.0', 12345)  # Replace with the server's IP address
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -45,7 +43,6 @@ class ClientGUI:
         self.receive_thread.start()
         self.send_thread.start()
 
-
     def receive_messages(self):
         while True:
             try:
@@ -54,21 +51,24 @@ class ClientGUI:
                     self.chat_text.config(state='normal')
                     self.chat_text.insert(tk.END, message + '\n')
                     self.chat_text.config(state='disabled')
-            except SystemExit:
-                raise SystemExit
+            except Exception as e:
+                print(f"Connection lost: {e}")
+                self.client_socket.close()
+                self.root.destroy()  # Close the GUI window
+                break
 
     def send_message(self):
         message = self.message_entry.get()
         if message.lower() == "exit":
             self.client_socket.close()
-            self.root.destroy()
+            self.root.destroy()  # Close the GUI window
         else:
             full_message = f"{self.username}: {message}"
             self.client_socket.send(full_message.encode('utf-8'))
             self.message_entry.delete(0, tk.END)
 
-
 if __name__ == '__main__':
     root = tk.Tk()
     gui = ClientGUI(root)
     root.mainloop()
+    

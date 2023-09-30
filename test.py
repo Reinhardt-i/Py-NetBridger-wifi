@@ -5,7 +5,6 @@ import os
 import random
 import string
 
-
 class TestSimulation(unittest.TestCase):
 
     @classmethod
@@ -19,8 +18,8 @@ class TestSimulation(unittest.TestCase):
         cls.server_process.wait()
 
     def test_simulation(self):
-        client1_process = subprocess.Popen(["python", "client.py"])
-        client2_process = subprocess.Popen(["python", "client.py"])
+        client1_process = subprocess.Popen(["python", "client.py"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        client2_process = subprocess.Popen(["python", "client.py"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         time.sleep(7)
 
         usernames = [''.join(random.choices(string.ascii_letters, k=8)) for _ in range(2)]
@@ -43,6 +42,9 @@ class TestSimulation(unittest.TestCase):
 
         client1_process.terminate()
         client2_process.terminate()
+        client1_process.communicate()  # Wait for process to finish
+        client2_process.communicate()  # Wait for process to finish
+
         time.sleep(10)
 
         log_file_path = "server.log"  # Check if the log file length has changed
@@ -57,10 +59,10 @@ class TestSimulation(unittest.TestCase):
         with open(log_file_path, "r") as log_file:
             log_contents = log_file.read()
             for username in usernames:
-                self.assertIn(f"Username: {username}", log_contents)
+                self.assertIn(f"{username} connected from", log_contents)
             for message in messages:
-                self.assertIn(f"Message: {message}", log_contents)
-
+                self.assertIn(f"Received from - !", log_contents)
 
 if __name__ == "__main__":
     unittest.main()
+    

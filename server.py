@@ -3,7 +3,6 @@ import threading
 import logging
 from typing import Dict
 
-
 clients: Dict[socket.socket, str] = {}
 clients_lock = threading.Lock()
 
@@ -13,7 +12,7 @@ logging.basicConfig(filename='server.log', level=logging.INFO, format='%(asctime
 
 def handle_client(client_socket: socket.socket, client_address: tuple):
     """
-        Handle incoming messages from a client.
+    Handle incoming messages from a client.
 
     Args:
         client_socket (socket.socket): The client's socket.
@@ -36,19 +35,33 @@ def handle_client(client_socket: socket.socket, client_address: tuple):
                 break
             logging.info(f"Received from - !{username} : {message}")
 
+            # Extract the recipient's username from the message
+            recipient_username, message = message.split(': ', 1)
 
             with clients_lock:
-                for client, user in clients.items():
-                    if client != client_socket:
-                        try:
-                            client.send(f" {message}".encode('utf-8'))
-                        except:
-                            print(f"Client {user} disconnected.")
-                            client.close()
-                            del clients[client]
+                if recipient_username == 'broadcast' or recipient_username == '0':
+                    # Broadcast the message to all clients
+                    for client, user in list(clients.items()):  # Convert to list to avoid dictionary modification during iteration
+                        if client != client_socket:
+                            try:
+                                client.send(f"{username}: {message}".encode('utf-8'))
+                            except:
+                                print(f"Client {user} disconnected.")
+                                client.close()
+                                del clients[client]
+                else:
+                    # Send the message to the specific recipient
+                    recipient_socket = None
+                    for client, user in clients.items():
+                        if user == recipient_username:
+                            recipient_socket = client
                             break
-                            raise
-                        
+
+                    if recipient_socket:
+                        recipient_socket.send(f"{username}: {message}".encode('utf-8'))
+                    else:
+                        print(f"Recipient {recipient_username} not found.")
+
     except Exception as e:
         logging.error(f"An error occurred: {e}")
 
@@ -62,7 +75,7 @@ def handle_client(client_socket: socket.socket, client_address: tuple):
 
 def start_server():
     """
-        Starts the server and listen for incoming client connections.
+    Starts the server and listens for incoming client connections.
     """
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = ('0.0.0.0', 12345)
@@ -79,3 +92,4 @@ def start_server():
 
 if __name__ == '__main__':
     start_server()
+    
